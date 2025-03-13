@@ -14,22 +14,22 @@ const busSchema = mongoose.Schema(
             type: String,
             required: true,
         },
-        deport_from: {
+        from: {
             type: String,
             required: true,
         },
-        deport_to: {
+        to: {
             type: String,
             required: true,
         },
-        deport_date: {
+        bus_number: {
+            type: String,
+            required: true,
+        },
+        renew_date: {
             type: Date,
             required: true,
         },
-        deport_time: {
-            type: String,
-            required: true,
-        }
     },
     {
         timestamps: true,

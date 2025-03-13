@@ -6,7 +6,7 @@ const AuthRedirect = () => {
   const { isAuthenticated, user } = useContext(AuthContext);
 
   if (isAuthenticated) {
-    const redirectPath = user.role === "admin" ? "/admin/dashboard" : "/user/dashboard";
+    const redirectPath = ["admin", "manager", "staff"].includes(user.role) ? "/admin/dashboard" : "/user/dashboard";
     return <Navigate to={redirectPath} replace />;
   }
 

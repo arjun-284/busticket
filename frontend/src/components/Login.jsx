@@ -82,7 +82,6 @@ const Login = () => {
         // Update the AuthContext
         setIsAuthenticated(true);
         setUser(data.user);
-        alert("Login successful!");
         // Redirect to the dashboard page
         if(data.user.role === "admin"){
           navigate("/admin/dashboard");

@@ -28,5 +28,5 @@ mongoose.connect(mongoDBURL).then(() => {
     console.log(`App is running in PORT : ${PORT}`);
   });
 }).catch((error) => {
-  console.error(error);
+  console.error(error,'App Cannot Connect To database');
 });

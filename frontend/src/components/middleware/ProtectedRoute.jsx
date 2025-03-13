@@ -9,7 +9,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/account" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (!allowedRoles.includes(user.role)) {
     return <div className="text-center text-red-500 mt-10 mb-10 text-xl font-bold">
       You are not allowed to access this page.
     </div>;
@@ -17,5 +17,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
   return <Outlet />;
 };
+
+ 
 
 export default ProtectedRoute;

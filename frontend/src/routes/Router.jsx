@@ -8,10 +8,15 @@ import AdminDashboard from "../components/admin/Dashboard.jsx";
 import UserLayout from "../components/user/layout/UserLayout.jsx";
 import UserDashboard from "../components/user/Dashboard.jsx";
 import BusSection from "../components/admin/Bus.jsx";
+import UserSection from "../components/admin/User.jsx";
+import SettingSection from "../components/admin/Setting.jsx";
+import AccountSection from "../components/admin/Account.jsx";
 import AuthRedirect from "../components/middleware/AuthRedirect.jsx";
 import ProtectedRoute from "../components/middleware/ProtectedRoute.jsx";
 import Booking from "../components/Booking.jsx";
 import Invoice from "../components/Invoice.jsx";
+import UserTable from "../components/admin/UserTable.jsx";
+import BusTable from "../components/admin/BusTable.jsx";
 
 const Routers = () => {
     return (
@@ -24,13 +29,28 @@ const Routers = () => {
             </Route>
 
             <Route path="booking" element={<Booking />} />
-            <Route path="invoice" element={<Invoice />}/>
+            <Route path="invoice" element={<Invoice />} />
 
             {/* Admin Routes Grouped Under /admin */}
-            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff']} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="bus" element={<BusSection />} />
+                    <Route path="view/buses" element={<BusTable />} />
+                    <Route path="setting" element={<SettingSection />} />
+                </Route>
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'manager']} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="add/bus" element={<BusSection />} />
+                    <Route path="view/users" element={<UserTable />} />
+                    <Route path="account" element={<AccountSection />} />
+                </Route>
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={'admin'} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="add/users" element={<UserSection />} />
                 </Route>
             </Route>
 
