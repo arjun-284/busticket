@@ -1,18 +1,18 @@
-import { User } from '../../models/UserModel.js';
-import { validateUserFields } from '../../utils/validateFields.js';
+import { Bus } from '../../models/BusModel.js';
+import { validateBusFields } from '../../utils/validateFields.js';
 
 export const create = async (req, res) => {
    try {
-      const { name, email, password, confirm_password, role } = req.body;
+      const { title, price, passenger, from, to, bus_number, renew_date } = req.body;
 
-      if (!validateUserFields(req.body)) {
+      if (!validateBusFields(req.body)) {
          return res.status(400).json({ message: 'All fields are required' });
       }
 
-      const newUser = { name, email, password, role };
+      const newBus = { title, price, passenger, from, to, bus_number, renew_date };
 
-      const user = await User.create(newUser);
-      return res.status(201).json(user);
+      const bus = await Bus.create(newBus);
+      return res.status(201).json(bus);
    } catch (error) {
       return res.status(500).json({ message: error.message });
    }
@@ -20,9 +20,9 @@ export const create = async (req, res) => {
 
 export const show = async (req, res) => {
    try {
-      const users = await User.find({});
+      const buses = await Bus.find({});
       return res.status(200).json({
-         data: users
+         data: buses
       });
    } catch (error) {
       return res.status(500).json({ message: error.message });

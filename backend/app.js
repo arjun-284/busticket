@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import { PORT, mongoDBURL } from './config/config.js';
-import { busRoutes } from './routes/BusRoutes.js';
+import { adminRoutes } from './routes/AdminRoutes.js';
 import { authRoutes } from './routes/AuthRoutes.js';
 
 import { errorHandler } from './utils/errorHandler.js';
@@ -19,7 +19,7 @@ app.use(cors({
 
 //routes list 
 app.use('/api', authRoutes);
-app.use('/api/buses', busRoutes);
+app.use('/api/admin', adminRoutes);
 app.use(errorHandler);
 
 mongoose.connect(mongoDBURL).then(() => {

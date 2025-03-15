@@ -3,7 +3,7 @@ import { AdminContext } from './layout/AdminLayout';
 
 const SettingSection = () => {
   const { user } = useContext(AdminContext);
-  
+
   // State for profile form
   const [profile, setProfile] = useState({
     name: '',

@@ -4,7 +4,7 @@ import { JWT_SECRET } from '../config/config.js';
 
 // Generate JWT
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: '10h' });
 };
 
 // Register new user

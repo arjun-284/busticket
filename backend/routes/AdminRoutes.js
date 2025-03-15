@@ -1,10 +1,11 @@
 import express from 'express';
-import { protect, authorize } from '../middleware/AuthMiddleware.js';
+import { protect } from '../middleware/AuthMiddleware.js';
+import { busRoutes } from './BusRoutes.js';
 
 const router = express.Router();
 
-router.use(protect, authorize('admin', 'manager', 'staff'));
+router.use(protect);
+router.use('/bus', busRoutes);
 
 
-
-export const authRoutes = router;
+export const adminRoutes = router;
