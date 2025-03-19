@@ -4,6 +4,7 @@ import cors from 'cors';
 import { PORT, mongoDBURL } from './config/config.js';
 import { adminRoutes } from './routes/AdminRoutes.js';
 import { authRoutes } from './routes/AuthRoutes.js';
+import { homeRoutes } from './routes/HomeRoutes.js';
 
 import { errorHandler } from './utils/errorHandler.js';
 
@@ -18,6 +19,7 @@ app.use(cors({
 }));
 
 //routes list 
+app.use('/api', homeRoutes);
 app.use('/api', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use(errorHandler);

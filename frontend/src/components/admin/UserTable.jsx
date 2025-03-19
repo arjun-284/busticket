@@ -4,118 +4,109 @@ import { useNavigate } from 'react-router-dom';
 
 const UserTable = () => {
   const { user } = useContext(AdminContext);
-  const [buses, setBuses] = useState([]);
+  const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchBuses = async () => {
+    const fetchUsers = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/bus/show', {
+        const response = await fetch('http://localhost:5000/api/admin/user/show', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
         if (!response.ok) {
-          throw new Error('Failed to fetch buses');
+          throw new Error('Failed to fetch users');
         }
         const data = await response.json();
-        setBuses(data.data);
+        setUsers(data.data);
       } catch (error) {
-        console.error('Error fetching buses:', error);
+        console.error('Error fetching user:', error);
       }
     };
 
-    fetchBuses();
+    fetchUsers();
   }, []);
 
-  const handleEdit = (bus) => {
-    navigate(`/admin/add/bus`, { state: { bus } });
+  const handleEdit = (user) => {
+    navigate(`/admin/add/user`, { state: { user } });
   };
 
-  const handleDelete = async (busId) => {
+  const handleDelete = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/bus/delete/${busId}`, {
+      const response = await fetch(`http://localhost:5000/api/admin/user/delete/${userId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       if (!response.ok) {
-        throw new Error('Failed to delete bus');
+        throw new Error('Failed to delete user');
       }
-      setBuses(buses.filter(bus => bus._id !== busId));
+      setUsers(users.filter(user => user._id !== userId));
     } catch (error) {
-      console.error('Error deleting bus:', error);
+      console.error('Error deleting user:', error);
     }
   };
 
   return (
     <div className="w-full mt-2 ml-auto mr-auto">
       <div className="bg-white p-6 rounded shadow-md">
-        {user.role !== "staff" && (
+        {user.role === "admin" && (
           <div className="float-right">
             <a
-              href="/admin/add/bus"
+              href="/admin/add/user"
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              Add Bus
+              Add User
             </a>
           </div>
         )}
-        <h2 className="text-xl font-bold mb-4">Bus Lists</h2>
+        <h2 className="text-xl font-bold mb-4">User Lists</h2>
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
               <th className="border border-gray-300 px-4 py-2">S.N.</th>
-              <th className="border border-gray-300 px-4 py-2">Title</th>
-              <th className="border border-gray-300 px-4 py-2"> Capacity</th>
-              <th className="border border-gray-300 px-4 py-2">From</th>
-              <th className="border border-gray-300 px-4 py-2">To</th>
-              <th className="border border-gray-300 px-4 py-2">Price (Rs.)</th>
-              <th className="border border-gray-300 px-4 py-2">Bus Number</th>
-              <th className="border border-gray-300 px-4 py-2">Renew Date</th>
-              {user.role !== "staff" && (
+              <th className="border border-gray-300 px-4 py-2">Name</th>
+              <th className="border border-gray-300 px-4 py-2"> Email</th>
+              <th className="border border-gray-300 px-4 py-2">Role</th>
+              {user.role === "admin" && (
                 <th className="border border-gray-300 px-4 py-2">Action</th>
               )}
             </tr>
           </thead>
           <tbody>
-            {buses.length > 0 ? (
-              buses.map((bus, index) => (
-                <tr key={bus._id}>
+            {users.length > 0 ? (
+              users.map((staff, index) => (
+                <tr key={staff._id}>
                   <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                  <td className="border border-gray-300 px-4 py-2">{bus.title}</td>
-                  <td className="border border-gray-300 px-4 py-2">{bus.passenger}</td>
-                  <td className="border border-gray-300 px-4 py-2">{bus.from}</td>
-                  <td className="border border-gray-300 px-4 py-2">{bus.to}</td>
-                  <td className="border border-gray-300 px-4 py-2">{bus.price}</td>
-                  <td className="border border-gray-300 px-4 py-2">{bus.bus_number}</td>
-                  <td className="border border-gray-300 px-4 py-2">{new Date(bus.renew_date).toISOString().split('T')[0]}</td>
-                  {user.role !== "staff" && (
+                  <td className="border border-gray-300 px-4 py-2">{staff.name}</td>
+                  <td className="border border-gray-300 px-4 py-2">{staff.email}</td>
+                  <td className="border border-gray-300 px-4 py-2">{staff.role}</td>
+                  {user.role === "admin" && (
                     <td className="border border-gray-300 px-4 py-2">
                       <button
-                        onClick={() => handleEdit(bus)}
+                        onClick={() => handleEdit(staff)}
                         className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
                       >
                         Edit
                       </button>
-                      {user.role === "admin" &&
-                        <button
-                        onClick={() => handleDelete(bus._id)}
+
+                      <button
+                        onClick={() => handleDelete(staff._id)}
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                       >
                         Delete
                       </button>
-                      }
-                      
+
                     </td>
                   )}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={user.role !== "staff" ? 9 : 8} className="border border-gray-300 px-4 py-2">
-                  No buses found.
+                <td colSpan={user.role === "admin" ? 5 : 4} className="border border-gray-300 px-4 py-2">
+                  No Users found.
                 </td>
               </tr>
             )}

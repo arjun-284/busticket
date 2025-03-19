@@ -10,6 +10,7 @@ import UserDashboard from "../components/user/Dashboard.jsx";
 import BusSection from "../components/admin/Bus.jsx";
 import UserSection from "../components/admin/User.jsx";
 import SettingSection from "../components/admin/Setting.jsx";
+import UserSetting from "../components/user/Setting.jsx";
 import AccountSection from "../components/admin/Account.jsx";
 import AuthRedirect from "../components/middleware/AuthRedirect.jsx";
 import ProtectedRoute from "../components/middleware/ProtectedRoute.jsx";
@@ -17,6 +18,7 @@ import Booking from "../components/Booking.jsx";
 import Invoice from "../components/Invoice.jsx";
 import UserTable from "../components/admin/UserTable.jsx";
 import BusTable from "../components/admin/BusTable.jsx";
+import Order from "../components/user/Order.jsx";
 
 const Routers = () => {
     return (
@@ -31,7 +33,9 @@ const Routers = () => {
             <Route path="booking" element={<Booking />} />
             <Route path="invoice" element={<Invoice />} />
 
+            
             {/* Admin Routes Grouped Under /admin */}
+
             <Route element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff']} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<AdminDashboard />} />
@@ -50,7 +54,7 @@ const Routers = () => {
 
             <Route element={<ProtectedRoute allowedRoles={'admin'} />}>
                 <Route path="/admin" element={<AdminLayout />}>
-                    <Route path="add/users" element={<UserSection />} />
+                    <Route path="add/user" element={<UserSection />} />
                 </Route>
             </Route>
 
@@ -59,6 +63,8 @@ const Routers = () => {
             <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
                 <Route path="/user" element={<UserLayout />}>
                     <Route path="dashboard" element={<UserDashboard />} />
+                    <Route path="order" element={<Order />} />
+                    <Route path="setting" element={<UserSetting />} />
                 </Route>
             </Route>
         </Routes>

@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+.skiptranslate{
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   justify-content: center;
+   gap: 3rem;
+   padding: 8px;
+   
+   span{
+      display: none;
+   }
+
+}
+
+.VIpgJd-yAWNEb-hvhgNd{
+   display: none;
+}

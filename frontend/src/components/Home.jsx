@@ -7,16 +7,12 @@ const Home = () => {
   useEffect(() => {
     const fetchBuses = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/bus/show', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const response = await fetch('http://localhost:5000/api/home');
         if (!response.ok) {
           throw new Error('Failed to fetch buses');
         }
         const data = await response.json();
-        setBuses(data.data);
+        setBuses(data.buses);
       } catch (error) {
         console.error('Error fetching buses:', error);
       }
@@ -38,7 +34,9 @@ const Home = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-        {buses.map((bus, index) => (
+        {!buses ? (
+          <p className="text-lg text-gray-500">Loading data...</p>
+        ) : (buses.map((bus, index) => (
           <div key={index}
             className="max-w-sm rounded-xl overflow-hidden shadow-lg bg-white border border-gray-200">
             <img
@@ -64,7 +62,7 @@ const Home = () => {
               </div>
             </div>
           </div>
-        ))}
+        )))}
       </div>
     </>
 

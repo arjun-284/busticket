@@ -3,7 +3,8 @@ export const validateBusFields = (body) => {
   return requiredFields.every(field => field in body);
 };
 
-export const validateUserFields = (body) => {
-  const requiredFields = ['name', 'email', 'password', 'confirm_password'];
+export const validateUserFields = (body, id = null) => {
+  const requiredFields = ['name', 'email'];
+  if (!id) requiredFields.push('password','confirm_password');
   return requiredFields.every(field => field in body);
 };
