@@ -22,7 +22,7 @@ const UserDashboard = () => {
       }
     };
     fetchDashboardInfo();
-  },[]);
+  }, []);
 
   return (
     <main className="flex-1 p-6 bg-gray-100">
@@ -33,13 +33,9 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-4 rounded shadow">
             <h2 className="text-xl font-semibold mb-2">Total Booking</h2>
-            <p className="text-gray-600">{dashboardData.totalUser || 0}</p>
+            <p className="text-gray-600">{dashboardData.totalBooking || 0}</p>
           </div>
 
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-xl font-semibold mb-2">Spend Money</h2>
-            <p className="text-gray-600">{dashboardData.activeSessions || 0}</p>
-          </div>
         </div>
       )}
     </main>

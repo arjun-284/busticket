@@ -12,7 +12,7 @@ const Login = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirm_password: "",
   });
 
   // State for login form
@@ -41,7 +41,7 @@ const Login = () => {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     // Simple validation
-    if (registerData.password !== registerData.confirmPassword) {
+    if (registerData.password !== registerData.confirm_password) {
       alert("Passwords do not match!");
       return;
     }
@@ -60,7 +60,7 @@ const Login = () => {
         alert(data.message || "Registration failed!");
       }
     } catch (error) {
-      console.error(error);
+      console.error(error); 
       alert("Something went wrong!");
     }
   };
@@ -143,7 +143,7 @@ const Login = () => {
               <input
                 type="password"
                 placeholder="********"
-                name="confirmPassword"
+                name="confirm_password"
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                 onChange={handleRegisterChange}
                 required

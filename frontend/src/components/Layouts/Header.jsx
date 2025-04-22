@@ -8,7 +8,7 @@ const Header = () => {
   const { isAuthenticated, user } = useContext(AuthContext);
 
   const dashboardLink = () => {
-    if (user && user.role === 'admin') {
+    if (user && ['admin','manager','staff'].includes(user.role)) {
       return '/admin/dashboard';
     } else if (user && user.role === 'user') {
       return '/user/dashboard';

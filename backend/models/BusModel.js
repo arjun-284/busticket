@@ -11,14 +11,20 @@ const busSchema = mongoose.Schema(
             required: true,
         },
         passenger: {
-            type: String,
+            type: Number,
             required: true,
         },
         from: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId, // Reference to Location model's _id
+            ref: "Location", // Name of the referenced model
             required: true,
         },
         to: {
+            type: mongoose.Schema.Types.ObjectId, // Reference to Location model's _id
+            ref: "Location", // Name of the referenced model
+            required: true,
+        },
+        departure_date: {
             type: String,
             required: true,
         },

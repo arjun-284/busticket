@@ -10,8 +10,9 @@ const generateToken = (id, role) => {
 
 // Register new user 
 export const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password,role } = req.body;
   try {
+     
     if (!validateUserFields(req.body)) {
       return res.status(400).json({ message: 'All fields are required' });
     }

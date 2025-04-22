@@ -7,32 +7,58 @@ const BusSection = () => {
 
   const formRef = useRef(null);
   const [errors, setErrors] = useState({});
+  const [locations, setLocations] = useState([]); // State for location list
 
   // Initialize form state with bus data if provided
   const [formData, setFormData] = useState({
     title: bus ? bus.title : "",
     passenger: bus ? bus.passenger : "",
-    from: bus ? bus.from : "",
-    to: bus ? bus.to : "",
+    from: bus ? (bus.from._id || bus.from) : "", // Handle populated or unpopulated data
+    to: bus ? (bus.to._id || bus.to) : "",       // Handle populated or unpopulated data
     price: bus ? bus.price : "",
     bus_number: bus ? bus.bus_number : "",
-    renew_date: bus ? bus.renew_date : ""
+    departure_date: bus
+      ? new Date(bus.departure_date).toISOString().split('T')[0]
+      : "",
+    renew_date: bus
+      ? new Date(bus.renew_date).toISOString().split('T')[0]
+      : "",
   });
 
-  // Update form data if bus changes (or if the component mounts with bus data)
+  // Fetch locations when component mounts
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/admin/bus/location', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        const data = await response.json();
+        setLocations(data || []); // Assuming API returns { locations: [...] }
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Update form data if bus changes
   useEffect(() => {
     if (bus) {
       setFormData({
         title: bus.title || "",
         passenger: bus.passenger || "",
-        from: bus.from || "",
-        to: bus.to || "",
+        from: bus.from._id || bus.from || "", // Use _id if populated, otherwise raw value
+        to: bus.to._id || bus.to || "",       // Use _id if populated, otherwise raw value
         price: bus.price || "",
         bus_number: bus.bus_number || "",
-        // If you need to display the date in yyyy-mm-dd format
+        departure_date: bus.departure_date
+          ? new Date(bus.departure_date).toISOString().split('T')[0]
+          : "",
         renew_date: bus.renew_date
           ? new Date(bus.renew_date).toISOString().split('T')[0]
-          : ""
+          : "",
       });
     }
   }, [bus]);
@@ -40,7 +66,7 @@ const BusSection = () => {
   // Handle form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Validate form fields
@@ -52,6 +78,7 @@ const BusSection = () => {
     if (!data.to) newErrors.to = "Destination location is required";
     if (!data.price) newErrors.price = "Ticket price is required";
     if (!data.bus_number) newErrors.bus_number = "Bus number is required";
+    if (!data.departure_date) newErrors.departure_date = "Departure date is required";
     if (!data.renew_date) newErrors.renew_date = "Renewal date is required";
     return newErrors;
   };
@@ -64,7 +91,6 @@ const BusSection = () => {
       return;
     }
 
-    // Determine if we're updating or creating a bus
     const isUpdate = !!bus;
     const endpoint = isUpdate
       ? `http://localhost:5000/api/admin/bus/update/${bus._id}`
@@ -76,7 +102,7 @@ const BusSection = () => {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(formData),
       });
@@ -87,7 +113,6 @@ const BusSection = () => {
 
       alert(isUpdate ? 'Bus updated successfully!' : 'Bus added successfully!');
 
-      // If it's a create operation, clear the form
       if (!isUpdate) {
         setFormData({
           title: "",
@@ -96,7 +121,8 @@ const BusSection = () => {
           to: "",
           price: "",
           bus_number: "",
-          renew_date: ""
+          departure_date: "",
+          renew_date: "",
         });
         formRef.current.reset();
       }
@@ -142,33 +168,43 @@ const BusSection = () => {
             {errors.passenger && <p className="text-red-500 text-sm">{errors.passenger}</p>}
           </div>
 
-          {/* From */}
+          {/* From - Dropdown */}
           <div className="mb-4">
             <label htmlFor="from" className="block text-gray-700 mb-2">From</label>
-            <input
-              type="text"
+            <select
               id="from"
               name="from"
-              placeholder="Enter Departure Location"
               className="w-full px-3 py-2 border rounded"
               value={formData.from}
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Departure Location</option>
+              {locations.map((loc) => (
+                <option key={loc._id} value={loc._id}>
+                  {loc.name}
+                </option>
+              ))}
+            </select>
             {errors.from && <p className="text-red-500 text-sm">{errors.from}</p>}
           </div>
 
-          {/* To */}
+          {/* To - Dropdown */}
           <div className="mb-4">
             <label htmlFor="to" className="block text-gray-700 mb-2">To</label>
-            <input
-              type="text"
+            <select
               id="to"
               name="to"
-              placeholder="Enter Destination Location"
               className="w-full px-3 py-2 border rounded"
               value={formData.to}
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Destination Location</option>
+              {locations.map((loc) => (
+                <option key={loc._id} value={loc._id}>
+                  {loc.name}
+                </option>
+              ))}
+            </select>
             {errors.to && <p className="text-red-500 text-sm">{errors.to}</p>}
           </div>
 
@@ -200,6 +236,20 @@ const BusSection = () => {
               onChange={handleChange}
             />
             {errors.bus_number && <p className="text-red-500 text-sm">{errors.bus_number}</p>}
+          </div>
+
+          {/* Departure Date */}
+          <div className="mb-4">
+            <label htmlFor="departure_date" className="block text-gray-700 mb-2">Departure Date</label>
+            <input
+              type="date"
+              id="departure_date"
+              name="departure_date"
+              className="w-full px-3 py-2 border rounded"
+              value={formData.departure_date}
+              onChange={handleChange}
+            />
+            {errors.departure_date && <p className="text-red-500 text-sm">{errors.departure_date}</p>}
           </div>
 
           {/* Renewal Date */}

@@ -1,5 +1,6 @@
 import { User } from '../../models/UserModel.js';
 import { Bus } from '../../models/BusModel.js';
+import { Booking } from '../../models/BookingModel.js';
 import { validateUserFields } from '../../utils/validateFields.js';
 import {registerUser} from '../AuthController.js';
 
@@ -7,8 +8,9 @@ export const index = async (req, res) => {
    try {
       const totalUser = await User.countDocuments();
       const totalBus = await Bus.countDocuments();
+      const totalBooking = await Booking.countDocuments();
       return res.status(200).json({
-         totalUser,totalBus
+         totalUser,totalBus,totalBooking
       });
    } catch (error) {
       return res.status(500).json({ message: error.message });
@@ -62,3 +64,15 @@ export const destroy = async (req, res) => {
       return res.status(500).json({ message: error.message });
    }
 };
+
+
+export const getAllBooking = async (req, res) => {
+   try {
+      const booking = await Booking.find({});
+      return res.status(200).json({
+         data: booking
+      });
+   } catch (error) {
+      return res.status(500).json({ message: error.message });
+   }
+}

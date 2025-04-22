@@ -8,9 +8,11 @@ import AdminDashboard from "../components/admin/Dashboard.jsx";
 import UserLayout from "../components/user/layout/UserLayout.jsx";
 import UserDashboard from "../components/user/Dashboard.jsx";
 import BusSection from "../components/admin/Bus.jsx";
+import TrackLocation from "../components/admin/TrackLocation.jsx";
 import UserSection from "../components/admin/User.jsx";
 import SettingSection from "../components/admin/Setting.jsx";
 import UserSetting from "../components/user/Setting.jsx";
+import AllBooking from "../components/admin/Booking.jsx";
 import AccountSection from "../components/admin/Account.jsx";
 import AuthRedirect from "../components/middleware/AuthRedirect.jsx";
 import ProtectedRoute from "../components/middleware/ProtectedRoute.jsx";
@@ -33,13 +35,15 @@ const Routers = () => {
             <Route path="booking" element={<Booking />} />
             <Route path="invoice" element={<Invoice />} />
 
-            
+
             {/* Admin Routes Grouped Under /admin */}
 
             <Route element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff']} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="booking" element={<AllBooking />} />
                     <Route path="view/buses" element={<BusTable />} />
+                    <Route path="track-location" element={<TrackLocation />} />
                     <Route path="setting" element={<SettingSection />} />
                 </Route>
             </Route>

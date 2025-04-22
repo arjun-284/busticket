@@ -1,94 +1,115 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 const Invoice = () => {
+   const { state } = useLocation();
+   const [invoiceData, setInvoiceData] = useState(null);
+   const [searchParams] = useSearchParams();
+   const bookingId = searchParams.get("id");
 
+   useEffect(() => {
+      if (bookingId) {
+         const fetchInvoiceData = async () => {
+            try {
+               const response = await fetch(`http://localhost:5000/api/get-invoice-data/${bookingId}`);
+               if (!response.ok) {
+                  throw new Error("Failed to fetch invoice data");
+               }
+               const data = await response.json();
+               console.log("Fetched Data:", data);
+               setInvoiceData(data);
+            } catch (error) {
+               console.error("Error fetching invoice data:", error);
+            }
+         };
+         fetchInvoiceData();
+      }
+   }, [bookingId]);
 
+   // Get invoice details from state or API response
+   const data = state?.invoiceData?.newBooking || invoiceData;
+   const message = state?.invoiceData?.message || "Booking Success";
+
+   // If no invoice data is available, show a message
+   if (!data) {
+      return <div>No invoice data available. Please book a ticket first.</div>;
+   }
 
    return (
       <>
-         <div className='flex justify-around gap-4 w-full h-30 p-4 border-b-1 rounded-lg mb-4'>
+         <div className="flex justify-around gap-4 w-full h-30 p-4 border-b-1 rounded-lg mb-4">
             <div>
-               <h1 className='text-7xl mt-3 font-bold text-gray-800'>Invoice</h1>
+               <h1 className="text-7xl mt-3 font-bold text-gray-800">{message}</h1>
             </div>
-
-            <img className='object-fill'
-               src="https://thumbs.dreamstime.com/b/cartoon-coach-bus-clipart-illustration-white-background-drawn-simple-style-bright-colors-s-perfect-336068470.jpg" alt="" />
+            <img
+               className="object-fill"
+               src="https://thumbs.dreamstime.com/b/cartoon-coach-bus-clipart-illustration-white-background-drawn-simple-style-bright-colors-s-perfect-336068470.jpg"
+               alt="Bus"
+            />
          </div>
 
-
-         <div class="max-w-4xl mx-auto p-8 bg-white border border-gray-200 rounded-lg shadow-lg">
-
-            <div class="flex justify-between items-center mb-8">
+         <div className="max-w-4xl mx-auto p-8 bg-white border border-gray-200 rounded-lg shadow-lg">
+            <div className="flex justify-between items-center mb-8">
                <div>
-                  <h1 class="text-3xl font-bold text-gray-800">Invoice</h1>
-                  <p class="text-gray-600">Invoice #: 12345</p>
+                  <h1 className="text-3xl font-bold text-gray-800">Invoice</h1>
+                  <p className="text-gray-600">Invoice #: {data._id}</p>
                </div>
-               <div class="text-right">
-                  <p class="text-lg font-semibold text-gray-800">Date: 2025-03-11</p>
-                  <p class="text-sm text-gray-500">Due Date: 2025-04-11</p>
+               <div className="text-right">
+                  <p className="text-lg font-semibold text-gray-800">Date: {new Date(data.createdAt).toISOString().split("T")[0]}</p>
                </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-2 gap-4 mb-8">
                <div>
-                  <h2 class="font-semibold text-gray-800">Bill To:</h2>
-                  <p class="text-gray-700">John Doe</p>
-                  <p class="text-gray-700">1234 Elm St.</p>
-                  <p class="text-gray-700">City, State, 12345</p>
+                  <h2 className="font-semibold text-gray-800">Bill To:</h2>
+                  <p className="text-gray-700">Full Name: {data.fullName}</p>
+                  <p className="text-gray-700">Email: {data.email}</p>
                </div>
-               <div class="text-right">
-                  <h2 class="font-semibold text-gray-800">Ship To:</h2>
-                  <p class="text-gray-700">Jane Smith</p>
-                  <p class="text-gray-700">5678 Oak St.</p>
-                  <p class="text-gray-700">City, State, 67890</p>
+               <div>
+                  <h2 className="font-semibold text-gray-800">Bus Details:</h2>
+                  <p className="text-gray-700">Bus Title: {data.busTitle}</p>
+                  <p className="text-gray-700">Bus Number: {data.bus_number}</p>
+                  <p className="text-gray-700">Departure Date: {data.date}</p>
+               </div>
+               <div>
+                  <h2 className="font-semibold text-gray-800">Payment Method: {data.paymentMethod}</h2>
                </div>
             </div>
 
-            <table class="w-full table-auto mb-8">
+            <table className="w-full table-auto mb-8">
                <thead>
                   <tr>
-                     <th class="text-left py-2 px-4 bg-gray-100">Item</th>
-                     <th class="text-left py-2 px-4 bg-gray-100">Description</th>
-                     <th class="text-right py-2 px-4 bg-gray-100">Quantity</th>
-                     <th class="text-right py-2 px-4 bg-gray-100">Unit Price</th>
-                     <th class="text-right py-2 px-4 bg-gray-100">Total</th>
+                     <th className="text-left py-2 px-4 bg-gray-100">From</th>
+                     <th className="text-left py-2 px-4 bg-gray-100">To</th>
+                     <th className="text-right py-2 px-4 bg-gray-100">Passenger</th>
+                     <th className="text-right py-2 px-4 bg-gray-100">Total</th>
                   </tr>
                </thead>
                <tbody>
                   <tr>
-                     <td class="border-t py-2 px-4">Widget A</td>
-                     <td class="border-t py-2 px-4">A great widget</td>
-                     <td class="border-t py-2 px-4 text-right">2</td>
-                     <td class="border-t py-2 px-4 text-right">$10.00</td>
-                     <td class="border-t py-2 px-4 text-right">$20.00</td>
-                  </tr>
-                  <tr>
-                     <td class="border-t py-2 px-4">Widget B</td>
-                     <td class="border-t py-2 px-4">Another great widget</td>
-                     <td class="border-t py-2 px-4 text-right">3</td>
-                     <td class="border-t py-2 px-4 text-right">$15.00</td>
-                     <td class="border-t py-2 px-4 text-right">$45.00</td>
+                     <td className="border-t py-2 px-4">{data.from}</td>
+                     <td className="border-t py-2 px-4">{data.to}</td>
+                     <td className="border-t py-2 px-4 text-right">{data.passenger}</td>
+                     <td className="border-t py-2 px-4 text-right">Rs. {data.totalPrice}</td>
                   </tr>
                </tbody>
             </table>
 
-            <div class="flex justify-end mb-8">
-               <div class="w-1/3 text-right">
-                  <p class="text-lg font-semibold text-gray-800">Subtotal: $65.00</p>
-                  <p class="text-lg font-semibold text-gray-800">Tax (5%): $3.25</p>
-                  <p class="text-2xl font-bold text-gray-800">Total: $68.25</p>
+            <div className="flex justify-end mb-8">
+               <div className="w-2/3 text-right">
+                  <p className="text-2xl font-bold text-gray-800">
+                     Total
+                     <span className="text-sm mr-2 ml-2">(Including 13% VAT)</span>: Rs. {data.totalPrice}
+                  </p>
                </div>
             </div>
 
-            <div class="text-center text-sm text-gray-500">
-               <p>Thank you for your business!</p>
-               <p>If you have any questions, please contact us at support@company.com</p>
+            <div className="text-center text-sm text-gray-500">
+               <p>Thank you for travelling with us!</p>
             </div>
          </div>
-
-
       </>
-   )
-}
+   );
+};
 
-export default Invoice
+export default Invoice;

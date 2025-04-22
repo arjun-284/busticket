@@ -37,18 +37,13 @@ const AdminDashboard = () => {
           </div>
 
           <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-xl font-semibold mb-2">Active Sessions</h2>
-            <p className="text-gray-600">{dashboardData.activeSessions || 0}</p>
+            <h2 className="text-xl font-semibold mb-2">Total Buses</h2>
+            <p className="text-gray-600">{dashboardData.totalBus || 0}</p>
           </div>
 
           <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-xl font-semibold mb-2">New Signups</h2>
-            <p className="text-gray-600">{dashboardData.newSignups || 0}</p>
-          </div>
-
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-xl font-semibold mb-2">Server Status</h2>
-            <p className="text-gray-600">{dashboardData.serverStatus || "Unknown"}</p>
+            <h2 className="text-xl font-semibold mb-2">Total Booking</h2>
+            <p className="text-gray-600">{dashboardData.totalBooking || 0}</p>
           </div>
         </div>
       )}
