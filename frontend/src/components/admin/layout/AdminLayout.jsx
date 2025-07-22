@@ -33,6 +33,10 @@ const AdminLayout = () => {
               <Link to="/admin/booking" className="hover:text-gray-300">Booking</Link>
             </li>
             <li className="mb-6">
+              <Link to="/admin/view/newlocation" className="hover:text-gray-300">Add Location</Link>
+
+            </li>
+            <li className="mb-6">
               <Link to="/admin/view/buses" className="hover:text-gray-300">Bus</Link>
             </li>
             <li className="mb-6">

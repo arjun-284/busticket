@@ -14,11 +14,22 @@ export const runNotificationJob = () => {
  
        // Find buses that need renewal today
        const busesDueToday = await Bus.find({
-         renew_date: {
-           $gte: startOfToday,
-           $lt: endOfToday,
-         }
-       });
+  $or: [
+    {
+      renew_date: {
+        $gte: startOfToday,
+        $lt: endOfToday,
+      },
+    },
+    {
+      insurance_renew_date: {
+        $gte: startOfToday,
+        $lt: endOfToday,
+      },
+    },
+  ],
+});
+
  
        // If any buses are due for renewal, send socket notification
        if (busesDueToday.length > 0 && global.io) {
@@ -40,3 +51,6 @@ export const runNotificationJob = () => {
      }
    });
  };
+
+
+ 

@@ -2,18 +2,14 @@ import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { Bus } from '../models/BusModel.js';
 import { Booking } from '../models/BookingModel.js';
-import { getAllLocations } from './admin/BusController.js';
+import { allLocations } from './admin/BusController.js';
 
 var allData = {};
 
 export const locations = async (req, res) => {
    try {
       // Fetch all locations from the database
-      const locations = await getAllLocations(req, res);
-      // Return the locations as a JSON response
-      return res.status(200).json({
-         locations
-      });
+       await allLocations(req, res);      
    } catch (error) {
       return res.status(500).json({ message: error.message });
    }

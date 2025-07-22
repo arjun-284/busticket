@@ -21,12 +21,18 @@ import Invoice from "../components/Invoice.jsx";
 import UserTable from "../components/admin/UserTable.jsx";
 import BusTable from "../components/admin/BusTable.jsx";
 import Order from "../components/user/Order.jsx";
+import LocationManager from "../components/admin/Addlocation.jsx";
+import Services from '../components/Services';
+import ContactUs from '../components/ContactUs';
+import { LanguageContext } from '../components/context/LanguageContext.jsx';
 
 const Routers = () => {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
+            <Route path="/services" element={<Services />} />
+  <Route path="/contact" element={<ContactUs />} />
 
             <Route element={<AuthRedirect />}>
                 <Route path="/account" element={<Login />} />
@@ -50,6 +56,7 @@ const Routers = () => {
 
             <Route element={<ProtectedRoute allowedRoles={['admin', 'manager']} />}>
                 <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="view/newlocation" element={<LocationManager />} />
                     <Route path="add/bus" element={<BusSection />} />
                     <Route path="view/users" element={<UserTable />} />
                     <Route path="account" element={<AccountSection />} />

@@ -8,6 +8,4 @@ router.use(protect);
 router.get('/dashboard', authorize('user'), index);
 router.get('/booking', authorize('user'), booking);
 
-
-
-export const clientRoutes = router;
+export default router;  // <-- Use default export!

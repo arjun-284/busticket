@@ -15,5 +15,5 @@ router.use('/user', userRoutes);
 router.get('/account-data', authorize('admin', 'manager'), getAccount);
 router.post('/account-data', authorize('admin', 'manager'), addAccount);
 
-
-export const adminRoutes = router;
+// 👉 Use default export for Express router!
+export default router;

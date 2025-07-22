@@ -11,4 +11,4 @@ router.post('/payment/initiate-esewa', initiateEsewaPayment);
 router.get('/payment/esewa-success', esewaSuccess);
 router.get('/payment/esewa-failure', esewaFailure);
 
-export const homeRoutes = router;
+export default router;

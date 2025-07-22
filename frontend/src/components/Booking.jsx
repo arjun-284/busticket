@@ -1,325 +1,349 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+
+// Helper to generate dynamic seat map
+const generateSeatMap = (maxSeats = 44) => {
+  const rows = [];
+  let seat = 1;
+  while (seat <= maxSeats) {
+    let thisRow = [];
+    for (let col = 0; col < 4 && seat <= maxSeats; col++) {
+      thisRow.push(seat);
+      seat++;
+    }
+    while (thisRow.length < 4) thisRow.push(null);
+    rows.push(thisRow);
+  }
+  return rows;
+};
+
+// Side label (A/B)
+const seatSide = (rowIdx, colIdx) => (colIdx < 2 ? "A" : "B");
 
 const Booking = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const bus = state?.bus || {};
   const formData = state?.formData || {};
+
+  // Simulated user (for demo; get from localStorage in prod)
   let user = null;
   try {
-    user = JSON.parse(localStorage.getItem('user')) || null;
-  } catch (error) {
-    console.error('Error parsing user from localStorage:', error);
-  }
+    user = JSON.parse(localStorage.getItem("user")) || null;
+  } catch {}
 
-  // State for booking form
+  // Bus seat map (dynamic)
+  const maxSeat = Number(bus.passenger || 44);
+  const seatMap = generateSeatMap(maxSeat);
+
+  // Fetched from backend: all booked seats for this bus
+  // For demo, use static array. Replace with API result.
+  const [bookedSeats, setBookedSeats] = useState([7, 28, 32, 31, 44, 3]);
+  // User's current selection
+  const [selectedSeats, setSelectedSeats] = useState([]);
+
+  // After booking, these seats will be added to bookedSeats
+  const [justBooked, setJustBooked] = useState([]);
+
+  // Passenger count
+  const passengerCount = parseInt(formData.passenger || 1);
+
+  // Form state
   const [bookingData, setBookingData] = useState({
-    fullName: user?.name || '',
-    email: user?.email || '',
-    passenger: formData.passenger || '',
-    totalPrice: (parseFloat(bus.price || 0) * parseInt(formData.passenger || 1) * 1.13).toFixed(2),
-    paymentMethod: '',
-    busId: bus._id || '',
-    busTitle: bus.title || '',
-    date: formData.date || '',
-    from: bus.from.name || '',
-    to: bus.to.name || '',
-    bus_number: bus.bus_number || '',
-    totalSeat: bus.passenger || '',
+    fullName: user?.name || "",
+    email: user?.email || "",
+    passenger: passengerCount,
+    selectedSeatNos: [],
+    totalPrice: (parseFloat(bus.price || 0) * passengerCount * 1.13).toFixed(2),
+    paymentMethod: "",
+    busId: bus._id || "",
+    busTitle: bus.title || "",
+    date: formData.date || "",
+    from: bus.from?.name || "",
+    to: bus.to?.name || "",
+    bus_number: bus.bus_number || "",
+    totalSeat: bus.passenger || "",
     guest: user ? 0 : 1,
     userId: user?.id || null,
   });
 
-  // Update totalPrice when passenger changes
+  // Update price & seat numbers when selected
   useEffect(() => {
-    const newTotal = (parseFloat(bus.price || 0) * parseInt(bookingData.passenger || 1) * 1.13).toFixed(2);
-    setBookingData(prev => ({ ...prev, totalPrice: newTotal }));
-  }, [bookingData.passenger, bus.price]);
+    setBookingData((prev) => ({
+      ...prev,
+      selectedSeatNos: selectedSeats.map((num) => {
+        for (let row = 0; row < seatMap.length; row++) {
+          for (let col = 0; col < seatMap[row].length; col++) {
+            if (seatMap[row][col] === num) {
+              return `${num}${seatSide(row, col)}`;
+            }
+          }
+        }
+        return num;
+      }),
+      passenger: selectedSeats.length,
+      totalPrice: (
+        parseFloat(bus.price || 0) * selectedSeats.length * 1.13
+      ).toFixed(2),
+    }));
+  }, [selectedSeats, bus.price]);
 
-  // Change value if data is changed
+  // Handle form change
   const handleBookingChange = (e) => {
     const { name, value } = e.target;
-    setBookingData(prev => ({ ...prev, [name]: value }));
+    setBookingData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Validate form fields
+  // Handle seat click
+  const handleSeatClick = (num) => {
+    if (
+      bookedSeats.includes(num) ||
+      justBooked.includes(num) ||
+      (selectedSeats.includes(num) && selectedSeats.length <= 1)
+    ) {
+      return;
+    }
+    if (selectedSeats.includes(num)) {
+      setSelectedSeats(selectedSeats.filter((s) => s !== num));
+    } else if (selectedSeats.length < passengerCount) {
+      setSelectedSeats([...selectedSeats, num]);
+    }
+  };
+
+  // Validate before submit
   const validateForm = (data) => {
-    const newErrors = {};
-    if (!data.fullName) newErrors.fullName = 'Full Name is required';
-    if (!data.email) newErrors.email = 'Email is required';
-    if (!data.passenger || parseInt(data.passenger) <= 0) newErrors.passenger = 'Number of passengers must be greater than 0';
-    if (parseInt(data.passenger) > parseInt(bus.passenger)) newErrors.passenger = 'Number of passengers must not be greater than available seats';
-    if (!data.paymentMethod) newErrors.paymentMethod = 'Payment method is required';
-    if (!data.date) newErrors.date = 'Departure date is required';
-    return newErrors;
+    const err = {};
+    if (!data.fullName) err.fullName = "Full Name is required";
+    if (!data.email) err.email = "Email is required";
+    if (!data.selectedSeatNos || data.selectedSeatNos.length !== passengerCount)
+      err.selectedSeatNos = "Select all seats as per number of passengers";
+    if (!data.paymentMethod) err.paymentMethod = "Payment method is required";
+    if (!data.date) err.date = "Departure date is required";
+    return err;
   };
 
-  const validateOnlineForm = (data) => {
-    const newErrors = {};
-    if (!data.fullName) newErrors.fullName = 'Full Name is required';
-    if (!data.email) newErrors.email = 'Email is required';
-    if (!data.passenger || parseInt(data.passenger) <= 0) newErrors.passenger = 'Number of passengers must be greater than 0';
-    if (parseInt(data.passenger) > parseInt(bus.passenger)) newErrors.passenger = 'Number of passengers must not be greater than available seats';
-    if (!data.date) newErrors.date = 'Departure date is required';
-    return newErrors;
-  };
-
-  // Submit the booking form
+  // Submit booking
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = validateForm(bookingData);
-    if (Object.keys(newErrors).length > 0) {
-      alert(Object.values(newErrors).join('\n'));
+    const errors = validateForm(bookingData);
+    if (Object.keys(errors).length > 0) {
+      alert(Object.values(errors).join("\n"));
       return;
     }
     try {
-      const response = await fetch('http://localhost:5000/api/booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Booking successful!');
-        setBookingData("");
-        navigate(`/invoice`, { state: { invoiceData: data } });
-      } else {
-        alert(data.message || 'Booking failed!');
-      }
+      // Replace with real POST in production
+      // const response = await fetch("http://localhost:5000/api/booking", {...});
+      // const data = await response.json();
+      // if (response.ok) { ... }
+      // SIMULATE booking success:
+      setJustBooked([...selectedSeats]);
+      setBookedSeats((prev) => [...prev, ...selectedSeats]);
+      setSelectedSeats([]);
+      setTimeout(() => {
+        // Redirect to invoice after 1s
+        navigate(`/invoice`, {
+          state: {
+            invoiceData: {
+              newBooking: {
+                ...bookingData,
+                selectedSeatNos: bookingData.selectedSeatNos,
+                passenger: bookingData.selectedSeatNos.length,
+              },
+              message: "Booking Success",
+            },
+          },
+        });
+      }, 800);
     } catch (error) {
-      console.error('Error submitting booking:', error);
-      alert('Something went wrong!');
+      alert("Something went wrong!");
     }
   };
 
+  // Renders a seat with proper color/status
+  const renderSeat = (num, rowIdx, colIdx) => {
+    if (!num) return <div className="w-8 h-8" key={`empty-${rowIdx}-${colIdx}`}></div>;
+    let status = "available";
+    if (bookedSeats.includes(num) || justBooked.includes(num)) status = "booked";
+    else if (selectedSeats.includes(num)) status = "selected";
+    const color =
+      status === "booked"
+        ? "bg-red-500"
+        : status === "selected"
+        ? "bg-blue-500"
+        : "bg-green-500 hover:bg-green-400 cursor-pointer";
 
-  //Esewa data
-  const product_code = "EPAYTEST";
-  const transaction_uuid = uuidv4();
-  // const signed_field_names = `total_amount=${bookingData.totalPrice},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
-  const signed_field_names = "total_amount,transaction_uuid,product_code";
-
-
-
-
-  const handleEsewaPayment = async () => {
-    // Define the form data object
-    const newErrors = validateOnlineForm(bookingData);
-    if (Object.keys(newErrors).length > 0) {
-      alert(Object.values(newErrors).join('\n'));
-      return;
-    }
-    const getSignature = {
-      total_amount: bookingData.totalPrice,
-      transaction_uuid: transaction_uuid,
-      product_code: product_code,
-      signed_field_names: signed_field_names
-    }
-    const payload = { ...bookingData, ...getSignature };
-    try {
-      const response = await fetch('http://localhost:5000/api/payment/initiate-esewa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json();
-      if (response.ok) {
-        submitEsewaForm(data.signature);
-      } else {
-        alert(data.message || 'Booking failed!');
-      }
-    } catch (error) {
-      console.error('Error submitting booking:', error);
-      alert('Something went wrong!');
-    }
+    return (
+      <button
+        key={num}
+        className={`w-10 h-10 rounded-md shadow flex items-center justify-center font-semibold text-white m-1 ${color} transition`}
+        disabled={status === "booked"}
+        onClick={() => handleSeatClick(num)}
+        style={{
+          border: status === "selected" ? "2px solid #222" : undefined,
+          opacity: status === "booked" ? 0.5 : 1,
+        }}
+      >
+        {num}
+        <span style={{ fontSize: 10, marginLeft: 2 }}>{seatSide(rowIdx, colIdx)}</span>
+      </button>
+    );
   };
 
+  // Seat legend
+  const legend = [
+    { color: "bg-green-500", label: "Available" },
+    { color: "bg-blue-500", label: "Your Selected" },
+    { color: "bg-red-500", label: "Booked" },
+  ];
 
-  const submitEsewaForm = (signature) => {
-
-    const formData = {
-      amount: (parseFloat(bus.price || 0) * parseInt(bookingData.passenger || 1)).toFixed(2), // e.g., 100
-      tax_amount: (parseFloat(bus.price || 0) * parseInt(bookingData.passenger || 1) * 0.13).toFixed(2), // e.g., 13
-      total_amount: bookingData.totalPrice,
-      transaction_uuid: transaction_uuid,
-      product_code: product_code,
-      product_service_charge: '0',
-      product_delivery_charge: '0',
-      success_url: "http://localhost:5000/api/payment/esewa-success",
-      failure_url: "http://localhost:5000/api/payment/esewa-failure",
-      signed_field_names: signed_field_names,
-      signature: signature,
-    };
-
-
-    // Create a form element
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
-
-    // Append the form data as hidden input fields
-    Object.entries(formData).forEach(([key, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    });
-
-    // Append the form to the body and submit it
-    document.body.appendChild(form);
-    form.submit();
-
-  }
   return (
-    <>
-      <div className='flex justify-around gap-4 w-full h-30 p-4 border-b-1 rounded-lg mb-4'>
-        <div>
-          <h1 className='text-7xl mt-3 font-bold text-gray-800'>Book Now</h1>
+    <div className="max-w-7xl mx-auto py-10 px-4">
+      <h1 className="text-4xl font-bold mb-4 text-blue-700">Book Your Seats</h1>
+      <div className="flex flex-col md:flex-row gap-10">
+        {/* Left: Seat layout */}
+        <div className="bg-white rounded-xl p-6 shadow-xl w-fit">
+          <div className="mb-2 flex gap-2">
+            {legend.map((l, i) => (
+              <span key={i} className="flex items-center mr-4 text-sm">
+                <span className={`inline-block w-4 h-4 rounded ${l.color} mr-1`} />
+                {l.label}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-col gap-1">
+            {seatMap.map((row, rIdx) => (
+              <div className="flex" key={rIdx}>
+                {row.map((num, cIdx) => renderSeat(num, rIdx, cIdx))}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 font-semibold text-blue-600">
+            Your Selection:{" "}
+            {selectedSeats
+              .map((num) => {
+                for (let row = 0; row < seatMap.length; row++) {
+                  for (let col = 0; col < seatMap[row].length; col++) {
+                    if (seatMap[row][col] === num) {
+                      return `${num}${seatSide(row, col)}`;
+                    }
+                  }
+                }
+                return num;
+              })
+              .join(", ") || "-"}
+          </div>
         </div>
-        <img
-          className='object-fill'
-          src='https://thumbs.dreamstime.com/b/cartoon-coach-bus-clipart-illustration-white-background-drawn-simple-style-bright-colors-s-perfect-336068470.jpg'
-          alt='Bus'
-        />
-      </div>
-      <div className='grid grid-cols-2 gap-3 p-4 justify-items-center'>
-        <form onSubmit={handleBookingSubmit} className='grid grid-cols-2 gap-4'>
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>Full Name</label>
-            <input
-              type='text'
-              placeholder='Full Name'
-              name='fullName'
-              value={bookingData.fullName}
-              className='w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none'
-              onChange={handleBookingChange}
-              readOnly={!!user?.name} // Read-only if user.name exists
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>Email</label>
-            <input
-              type='email'
-              placeholder='example@mail.com'
-              name='email'
-              value={bookingData.email}
-              className='w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none'
-              onChange={handleBookingChange}
-              readOnly={!!user?.email} // Read-only if user.email exists
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>No of Passengers Travelling</label>
-            <input
-              type='number'
-              placeholder='1'
-              name='passenger'
-              value={bookingData.passenger}
-              className='w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none'
-              onChange={handleBookingChange}
-              min='1'
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>Departure Date</label>
-            <input
-              type='date'
-              name='date'
-              value={bookingData.date}
-              className='w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none'
-              onChange={handleBookingChange}
-              readOnly={!!formData.date} // Read-only if formData.date exists
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label className='block text-gray-700 font-medium mb-2'>Payment</label>
-            <div className='flex items-center gap-4'>
-              <label className='flex items-center'>
-                <input
-                  type='radio'
-                  name='paymentMethod'
-                  value='esewa'
-                  className='mr-2'
-                  onChange={(e) => {
-                    handleBookingChange(e);
-                    setTimeout(() => {
-                      if (e.target.checked && e.target.value === "esewa") {
-                        handleEsewaPayment();
-                      }
-                    }, 100);
-                  }}
-                  required
-                />
-                <img
-                  className='max-w-25'
-                  src='https://upload.wikimedia.org/wikipedia/commons/f/ff/Esewa_logo.webp'
-                  alt='esewa'
-                />
-              </label>
-              <label className='flex items-center'>
-                <input
-                  type='radio'
-                  name='paymentMethod'
-                  value='cash'
-                  className='mr-2'
-                  onChange={handleBookingChange}
-                  required
-                />
-                By Cash
-              </label>
+
+        {/* Right: Booking form */}
+        <form onSubmit={handleBookingSubmit} className="flex-1 bg-white rounded-xl shadow-xl p-8">
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="font-medium">Full Name</label>
+              <input
+                type="text"
+                name="fullName"
+                value={bookingData.fullName}
+                onChange={handleBookingChange}
+                className="w-full border px-3 py-2 rounded"
+                required
+                readOnly={!!user?.name}
+              />
             </div>
-          </div>
-          <div className='mb-4'>
-            <span className='block text-gray-700 font-medium mb-2'>
-              Price: Rs. {(parseFloat(bus.price || 0) * parseInt(bookingData.passenger || 1)).toFixed(2)}
-            </span>
-            <span className='block text-gray-700 font-medium mb-2'>VAT: 13%</span>
-            <span className='block text-gray-700 font-medium mb-2'>
-              Total: Rs. {bookingData.totalPrice}
-            </span>
-          </div>
-          <div className='mb-4'>
+            <div>
+              <label className="font-medium">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={bookingData.email}
+                onChange={handleBookingChange}
+                className="w-full border px-3 py-2 rounded"
+                required
+                readOnly={!!user?.email}
+              />
+            </div>
+            <div>
+              <label className="font-medium">No. of Passengers</label>
+              <input
+                type="number"
+                name="passenger"
+                value={bookingData.passenger}
+                min="1"
+                className="w-full border px-3 py-2 rounded bg-gray-100"
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="font-medium">Departure Date</label>
+              <input
+                type="date"
+                name="date"
+                value={bookingData.date}
+                onChange={handleBookingChange}
+                className="w-full border px-3 py-2 rounded"
+                required
+                readOnly={!!formData.date}
+              />
+            </div>
+            <div>
+              <label className="font-medium">Payment</label>
+              <div className="flex gap-4">
+                <label>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="esewa"
+                    checked={bookingData.paymentMethod === "esewa"}
+                    onChange={handleBookingChange}
+                    required
+                  />{" "}
+                  eSewa
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cash"
+                    checked={bookingData.paymentMethod === "cash"}
+                    onChange={handleBookingChange}
+                  />{" "}
+                  Cash
+                </label>
+              </div>
+            </div>
+            <div className="font-medium">
+              <span>
+                Total Price: <b>Rs. {bookingData.totalPrice}</b> (incl. 13% VAT)
+              </span>
+            </div>
             <button
-              type='submit'
-              className='w-full bg-blue-500 text-white font-medium py-3 rounded-lg hover:bg-blue-600 transition'
+              type="submit"
+              className="mt-4 w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
             >
               Book Now
             </button>
           </div>
         </form>
-
-        <div>
-          <div className='w-100 rounded-xl overflow-hidden shadow-lg bg-white border border-gray-200'>
-            <img
-              className='w-full h-48 object-cover'
-              src='https://thumbs.dreamstime.com/b/cartoon-coach-bus-clipart-illustration-white-background-drawn-simple-style-bright-colors-s-perfect-336068470.jpg'
-              alt='Bus'
-            />
-            <div className='p-4'>
-              <h2 className='text-xl font-semibold text-gray-800'>{bus.title}</h2>
-              <div className='flex justify-between'>
-                <span className='text-gray-600 font-semibold'>Passenger Seat: {bus.passenger}</span>
-                <span className='text-gray-600 font-semibold'>Price: Rs.{bus.price}</span>
-              </div>
-              <div className='flex justify-between mt-2'>
-                <span className='text-gray-600 font-semibold'>From: {bus.from?.name || 'N/A'}</span>
-                <span className='text-gray-600 font-semibold'>To: {bus.to?.name || 'N/A'}</span>
-              </div>
-              <div className='mt-4'>
-                <span className='text-gray-600 font-semibold'>Bus Number: {bus.bus_number}</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-    </>
+      {/* After booking, show a message */}
+      {justBooked.length > 0 && (
+        <div className="mt-6 text-green-700 font-bold text-xl">
+          Your booking was successful! Booked seats:{" "}
+          {justBooked
+            .map((num) => {
+              for (let row = 0; row < seatMap.length; row++) {
+                for (let col = 0; col < seatMap[row].length; col++) {
+                  if (seatMap[row][col] === num) {
+                    return `${num}${seatSide(row, col)}`;
+                  }
+                }
+              }
+              return num;
+            })
+            .join(", ")}
+        </div>
+      )}
+    </div>
   );
 };
 
