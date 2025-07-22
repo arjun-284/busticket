@@ -4,8 +4,18 @@ import { Location } from '../../models/LocationModel.js';
 
 export const create = async (req, res) => {
   try {
-    // console.log("Create Bus - BODY:", req.body); // Keep for debugging if needed
-    // console.log("Create Bus - FILE:", req.file); // Keep for debugging if needed
+    console.log("=== BUS CREATE DEBUG ===");
+    console.log("Create Bus - BODY:", req.body);
+    console.log("Create Bus - FILE:", req.file);
+    console.log("Headers:", req.headers);
+    console.log("User:", req.user ? req.user.role : 'No user found');
+    console.log("========================");
+
+    // Check if req.body exists
+    if (!req.body) {
+      console.error('req.body is undefined - multer may not be parsing the form data correctly');
+      return res.status(400).json({ message: 'Form data not parsed correctly. Please ensure the request is sent as multipart/form-data.' });
+    }
 
     const image = req.file ? req.file.filename : null;
 

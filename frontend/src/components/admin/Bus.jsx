@@ -79,30 +79,44 @@ const BusSection = () => {
     if (!data.departure_date) newErrors.departure_date = "Departure date is required";
     if (!data.renew_date) newErrors.renew_date = "Bluebook renewal date is required";
     if (!data.insurance_renew_date) newErrors.insurance_renew_date = "Insurance renewal date is required";
-    if(!data.image && !bus) newErrors.image = "Bus image is required"; // Only require image for new buses
+    // Fix: Check imageFile for new buses, or existing image for updates
+    if (!bus && !imageFile) newErrors.image = "Bus image is required";
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting form with data:", formData, "Image file:", imageFile);
+    console.log("=== FORM SUBMISSION STARTED ===");
+    console.log("Form data:", formData);
+    console.log("Image file:", imageFile);
+    console.log("Is update:", !!bus);
+    
     const newErrors = validateForm(formData);
     if (Object.keys(newErrors).length > 0) {
+      console.log("Validation errors:", newErrors);
       setErrors(newErrors);
       return;
     }
+    console.log("✅ Validation passed");
 
     const isUpdate = !!bus;
-    // ✅ Fix 2: Interpolation error in endpoint URL
     const endpoint = isUpdate
       ? `http://localhost:5000/api/admin/bus/update/${bus._id}`
       : 'http://localhost:5000/api/admin/bus/create';
     const method = isUpdate ? 'PUT' : 'POST';
+    
+    console.log("Request details:");
+    console.log("- Endpoint:", endpoint);
+    console.log("- Method:", method);
+    console.log("- Token:", localStorage.getItem('token') ? 'Present' : 'Missing');
 
     const formDataToSend = new FormData();
     Object.entries(formData).forEach(([key, val]) => {
       if (key === 'amenities') {
         formDataToSend.append('amenities', JSON.stringify(val));
+      } else if (key === 'image') {
+        // Skip the image field from formData - we'll handle it separately
+        return;
       } else {
         formDataToSend.append(key, val);
       }
@@ -110,8 +124,15 @@ const BusSection = () => {
     if (imageFile) {
       formDataToSend.append('image', imageFile);
     }
+    
+    // Log FormData contents
+    console.log("FormData contents:");
+    for (let [key, value] of formDataToSend.entries()) {
+      console.log(`- ${key}:`, value);
+    }
 
     try {
+      console.log("🚀 Sending request...");
       const response = await fetch(endpoint, {
         method,
         headers: {
@@ -119,24 +140,52 @@ const BusSection = () => {
         },
         body: formDataToSend,
       });
+      
+      console.log("📡 Response received:");
+      console.log("- Status:", response.status);
+      console.log("- Status Text:", response.statusText);
+      console.log("- Headers:", Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log("- Response body (text):", responseText);
+      
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+        console.log("- Response body (parsed):", responseData);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        responseData = { message: responseText };
+      }
 
-      if (!response.ok) throw new Error('Failed');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${responseData.message || 'Request failed'}`);
+      }
+      
+      console.log("✅ Request successful!");
       alert(isUpdate ? 'Bus updated successfully!' : 'Bus added successfully!');
+      
       if (!isUpdate) {
         formRef.current.reset();
         setFormData({
           title: "", owner: "", passenger: "", type: "", from: "", to: "",
-          price: "", bus_number: "",
+          price: "", bus_number: "", image: "",
           amenities: { wifi: false, charging: false, ac: false },
           departure_date: "", renew_date: "", insurance_renew_date: ""
         });
         setImageFile(null);
       }
       setErrors({});
+      
     } catch (err) {
-      console.error("Submission failed", err);
-      alert('Submission failed.');
+      console.error("❌ Request failed:");
+      console.error("- Error type:", err.name);
+      console.error("- Error message:", err.message);
+      console.error("- Full error:", err);
+      alert(`Submission failed: ${err.message}`);
     }
+    
+    console.log("=== FORM SUBMISSION ENDED ===");
   };
 
   return (

@@ -13,7 +13,6 @@ import errorHandler from './utils/errorHandler.js';
 
 import { runNotificationJob } from './jobs/NotificationCron.js'; // cron job function
 import locationRoutes from './routes/LocationRoutes.js';
-import busRoutes from './routes/bus.routes.js';  // For /api/admin/bus/*
 
 
 const app = express();
@@ -32,6 +31,7 @@ io.on('connection', (socket) => {
 });
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: ['http://localhost:5173', 'https://rc-epay.esewa.com.np'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -41,8 +41,7 @@ app.use(cors({
 // Route groups (keep order: most specific last)
 app.use('/api', homeRoutes);
 app.use('/api', authRoutes);
-app.use('/api/admin', adminRoutes);      // /api/admin/*
-app.use('/api/admin', busRoutes);        // /api/admin/bus/*    <--- For bus operations
+app.use('/api/admin', adminRoutes);      // /api/admin/* (includes bus routes)
 app.use('/api/user', clientRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/uploads', express.static('uploads'));
